@@ -21,6 +21,7 @@ class HeatTransfer(QWidget):
         self.left_slider.setGeometry(30, 30, 20, 140)
         self.left_slider.setRange(0, 200)
         self.left_slider.setValue(200)
+        self.left_slider.valueChanged.connect(self.left_temperature_changed)
 
         self.left_body_label = QLabel(self)
         self.left_body_label.setGeometry(70, 30, 90, 140)
@@ -34,6 +35,7 @@ class HeatTransfer(QWidget):
         self.right_slider.setGeometry(510, 30, 20, 140)
         self.right_slider.setRange(0, 200)
         self.right_slider.setValue(0)
+        self.right_slider.valueChanged.connect(self.right_temperature_changed)
 
         self.connector_label = QLabel(self)
         self.connector_label.setGeometry(160, 90, 240, 25)
@@ -91,6 +93,20 @@ class HeatTransfer(QWidget):
         spin_box.setValue(value)
         spin_box.setSuffix(suffix)
         return spin_box
+
+    def left_temperature_changed(self):
+        temperature = self.left_slider.value()
+        self.left_temperature_box.setValue(temperature)
+        self.set_body_color(self.left_body_label, temperature)
+
+    def right_temperature_changed(self):
+        temperature = self.right_slider.value()
+        self.right_temperature_box.setValue(temperature)
+        self.set_body_color(self.right_body_label, temperature)
+
+    def set_body_color(self, label, temperature):
+        red = int(temperature / 200 * 255)
+        label.setStyleSheet(f"background-color: rgb({red}, 0, 0);")
 
     def graphs_clicked(self):
         self.graph_window.show()
