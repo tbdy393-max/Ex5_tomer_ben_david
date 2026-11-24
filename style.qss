@@ -2,3 +2,4 @@ QWidget { background-color: #f4f6fb; font-family: Segoe UI; font-size: 12px; col
 QPushButton { background-color: #2b4c8c; color: white; border-radius: 8px; font-weight: bold; }
 QPushButton:hover { background-color: #3d64b0; }
 QPushButton:checked { background-color: #c0392b; }
+QLabel#title { font-size: 20px; font-weight: bold; color: #2b4c8c; }

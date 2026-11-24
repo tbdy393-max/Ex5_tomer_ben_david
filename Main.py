@@ -1,17 +1,21 @@
 import sys
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider, QDoubleSpinBox, QAbstractSpinBox
+from about_window import AboutWindow
+from graph_window import GraphWindow
 
 
 class HeatTransfer(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.about_window = AboutWindow()
+        self.graph_window = GraphWindow()
         self.setupUI()
 
     def setupUI(self):
         self.setWindowTitle("Heat Transfer")
-        self.setGeometry(200, 150, 560, 330)
+        self.setGeometry(40, 80, 560, 330)
 
         self.left_slider = QSlider(Qt.Orientation.Vertical, self)
         self.left_slider.setGeometry(30, 30, 20, 140)
@@ -73,9 +77,11 @@ class HeatTransfer(QWidget):
 
         self.graphs_button = QPushButton("Graphs", self)
         self.graphs_button.setGeometry(230, 230, 100, 30)
+        self.graphs_button.clicked.connect(self.graphs_clicked)
 
         self.about_button = QPushButton("About", self)
         self.about_button.setGeometry(230, 270, 100, 30)
+        self.about_button.clicked.connect(self.about_clicked)
 
     def create_spin_box(self, x, y, minimum, maximum, value, suffix):
         spin_box = QDoubleSpinBox(self)
@@ -85,6 +91,12 @@ class HeatTransfer(QWidget):
         spin_box.setValue(value)
         spin_box.setSuffix(suffix)
         return spin_box
+
+    def graphs_clicked(self):
+        self.graph_window.show()
+
+    def about_clicked(self):
+        self.about_window.show()
 
 
 if __name__ == '__main__':
