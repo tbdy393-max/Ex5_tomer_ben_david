@@ -89,6 +89,8 @@ class HeatTransfer(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    with open("style.qss") as f:
+        app.setStyleSheet(f.read())
     window = HeatTransfer()
     window.show()
     sys.exit(app.exec())
