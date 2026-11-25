@@ -14,6 +14,9 @@ class HeatTransfer(QWidget):
         self.graph_window = GraphWindow()
         self.dt = 0.01
         self.counter = 0
+        self.time_history = []
+        self.body1_temp_history = []
+        self.body2_temp_history = []
         self.timer = QTimer(self)
         self.timer.setInterval(10)
         self.timer.timeout.connect(self.timer_method)
@@ -125,6 +128,9 @@ class HeatTransfer(QWidget):
             self.body2 = Body(self.right_mass_box.value(), self.right_heat_capacity_box.value(), self.right_temperature_box.value())
             self.counter = 0
             self.time_label.setText("Time: 0.0 s")
+            self.time_history = [0]
+            self.body1_temp_history = [self.body1.temperature]
+            self.body2_temp_history = [self.body2.temperature]
             self.timer.start()
         else:
             self.start_button.setText("Start")
@@ -148,6 +154,10 @@ class HeatTransfer(QWidget):
 
         self.counter += 1
         self.time_label.setText(f"Time: {self.counter * self.dt:.1f} s")
+
+        self.time_history.append(self.counter * self.dt)
+        self.body1_temp_history.append(temperature_1)
+        self.body2_temp_history.append(temperature_2)
 
     def graphs_clicked(self):
         self.graph_window.show()
