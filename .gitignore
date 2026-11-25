@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Exported results
+heat_transfer_results.csv
