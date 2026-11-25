@@ -1,8 +1,9 @@
 import sys
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider, QDoubleSpinBox, QAbstractSpinBox
 from about_window import AboutWindow
 from graph_window import GraphWindow
+from Body import Body
 
 
 class HeatTransfer(QWidget):
@@ -11,6 +12,11 @@ class HeatTransfer(QWidget):
         super().__init__()
         self.about_window = AboutWindow()
         self.graph_window = GraphWindow()
+        self.dt = 0.01
+        self.counter = 0
+        self.timer = QTimer(self)
+        self.timer.setInterval(10)
+        self.timer.timeout.connect(self.timer_method)
         self.setupUI()
 
     def setupUI(self):
@@ -41,9 +47,12 @@ class HeatTransfer(QWidget):
         self.connector_label.setGeometry(160, 90, 240, 25)
         self.connector_label.setStyleSheet("background-color: rgb(170, 170, 170);")
 
+        self.time_label = QLabel("Time: 0.0 s", self)
+        self.time_label.setGeometry(240, 140, 100, 25)
+
         self.conductivity_label = QLabel("Conductivity", self)
         self.conductivity_label.setGeometry(240, 30, 110, 20)
-        self.conductivity_box = self.create_spin_box(220, 52, 0.01, 100, 1, " J/s°C")
+        self.conductivity_box = self.create_spin_box(220, 52, 0.01, 20, 1, " J/s°C")
 
         self.left_temperature_label = QLabel("Temp.", self)
         self.left_temperature_label.setGeometry(20, 190, 50, 25)
@@ -53,11 +62,11 @@ class HeatTransfer(QWidget):
 
         self.left_mass_label = QLabel("Mass", self)
         self.left_mass_label.setGeometry(20, 230, 50, 25)
-        self.left_mass_box = self.create_spin_box(75, 230, 0.1, 1000, 10, " kg")
+        self.left_mass_box = self.create_spin_box(75, 230, 1, 1000, 10, " kg")
 
         self.left_heat_capacity_label = QLabel("H. Cap.", self)
         self.left_heat_capacity_label.setGeometry(20, 270, 50, 25)
-        self.left_heat_capacity_box = self.create_spin_box(75, 270, 0.01, 10000, 1, " J/kg°C")
+        self.left_heat_capacity_box = self.create_spin_box(75, 270, 1, 5000, 1, " J/kg°C")
 
         self.right_temperature_label = QLabel("Temp.", self)
         self.right_temperature_label.setGeometry(495, 190, 50, 25)
@@ -67,15 +76,16 @@ class HeatTransfer(QWidget):
 
         self.right_mass_label = QLabel("Mass", self)
         self.right_mass_label.setGeometry(495, 230, 50, 25)
-        self.right_mass_box = self.create_spin_box(365, 230, 0.1, 1000, 10, " kg")
+        self.right_mass_box = self.create_spin_box(365, 230, 1, 1000, 10, " kg")
 
         self.right_heat_capacity_label = QLabel("H. Cap.", self)
         self.right_heat_capacity_label.setGeometry(495, 270, 50, 25)
-        self.right_heat_capacity_box = self.create_spin_box(365, 270, 0.01, 10000, 1, " J/kg°C")
+        self.right_heat_capacity_box = self.create_spin_box(365, 270, 1, 5000, 1, " J/kg°C")
 
         self.start_button = QPushButton("Start", self)
         self.start_button.setGeometry(230, 190, 100, 30)
         self.start_button.setCheckable(True)
+        self.start_button.toggled.connect(self.start_stop_button_method)
 
         self.graphs_button = QPushButton("Graphs", self)
         self.graphs_button.setGeometry(230, 230, 100, 30)
@@ -107,6 +117,37 @@ class HeatTransfer(QWidget):
     def set_body_color(self, label, temperature):
         red = int(temperature / 200 * 255)
         label.setStyleSheet(f"background-color: rgb({red}, 0, 0);")
+
+    def start_stop_button_method(self, is_running):
+        if is_running:
+            self.start_button.setText("Stop")
+            self.body1 = Body(self.left_mass_box.value(), self.left_heat_capacity_box.value(), self.left_temperature_box.value())
+            self.body2 = Body(self.right_mass_box.value(), self.right_heat_capacity_box.value(), self.right_temperature_box.value())
+            self.counter = 0
+            self.time_label.setText("Time: 0.0 s")
+            self.timer.start()
+        else:
+            self.start_button.setText("Start")
+            self.timer.stop()
+
+    def timer_method(self):
+        conductivity = self.conductivity_box.value()
+        heat_rate_1 = conductivity * (self.body2.temperature - self.body1.temperature)
+        heat_rate_2 = conductivity * (self.body1.temperature - self.body2.temperature)
+        heat_1 = heat_rate_1 * self.dt
+        heat_2 = heat_rate_2 * self.dt
+        temperature_1 = self.body1.add_heat(heat_1)
+        temperature_2 = self.body2.add_heat(heat_2)
+
+        self.left_slider.setValue(round(temperature_1))
+        self.right_slider.setValue(round(temperature_2))
+        self.left_temperature_box.setValue(temperature_1)
+        self.right_temperature_box.setValue(temperature_2)
+        self.set_body_color(self.left_body_label, temperature_1)
+        self.set_body_color(self.right_body_label, temperature_2)
+
+        self.counter += 1
+        self.time_label.setText(f"Time: {self.counter * self.dt:.1f} s")
 
     def graphs_clicked(self):
         self.graph_window.show()
