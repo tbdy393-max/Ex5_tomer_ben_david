@@ -11,7 +11,7 @@ class HeatTransfer(QWidget):
     def __init__(self):
         super().__init__()
         self.about_window = AboutWindow()
-        self.graph_window = GraphWindow()
+        self.graph_window = GraphWindow(self)
         self.dt = 0.01
         self.counter = 0
         self.time_history = []
