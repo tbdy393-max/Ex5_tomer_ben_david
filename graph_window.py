@@ -1,3 +1,4 @@
+import os
 from PySide6.QtWidgets import QWidget, QPushButton, QComboBox
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -36,6 +37,7 @@ class GraphWindow(QWidget):
 
         self.export_button = QPushButton("Export to CSV", self)
         self.export_button.setGeometry(470, 150, 130, 30)
+        self.export_button.clicked.connect(self.export_clicked)
 
     def setup_axes(self):
         self.axes = self.figure.add_subplot(1, 1, 1)
@@ -59,3 +61,16 @@ class GraphWindow(QWidget):
         self.figure.clear()
         self.setup_axes()
         self.canvas.draw()
+
+    def export_clicked(self):
+        time = self.main_window.time_history
+        temperatures_1 = self.main_window.body1_temp_history
+        temperatures_2 = self.main_window.body2_temp_history
+        if len(time) == 0:
+            return
+        file_name = os.path.join(os.path.dirname(__file__), "heat_transfer_results.csv")
+        with open(file_name, "w") as f:
+            f.write("Time [s],Temperature 1 [C],Temperature 2 [C]\n")
+            for i in range(len(time)):
+                f.write(f"{time[i]:.2f},{temperatures_1[i]:.4f},{temperatures_2[i]:.4f}\n")
+        os.startfile(file_name)
