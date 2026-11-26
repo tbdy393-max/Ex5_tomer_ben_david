@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider, QDoubleSpinBox, QAbstractSpinBox
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider, QDoubleSpinBox, QAbstractSpinBox, QComboBox
 from about_window import AboutWindow
 from graph_window import GraphWindow
 from Body import Body
@@ -13,6 +13,7 @@ class HeatTransfer(QWidget):
         self.about_window = AboutWindow()
         self.graph_window = GraphWindow(self)
         self.dt = 0.01
+        self.equilibrium_difference = 0.1
         self.counter = 0
         self.time_history = []
         self.body1_temp_history = []
@@ -51,7 +52,15 @@ class HeatTransfer(QWidget):
         self.connector_label.setStyleSheet("background-color: rgb(170, 170, 170);")
 
         self.time_label = QLabel("Time: 0.0 s", self)
-        self.time_label.setGeometry(240, 140, 100, 25)
+        self.time_label.setGeometry(240, 122, 110, 25)
+
+        self.speed_label = QLabel("Speed", self)
+        self.speed_label.setGeometry(205, 152, 45, 25)
+        self.speed_combo_box = QComboBox(self)
+        self.speed_combo_box.setGeometry(255, 152, 80, 25)
+        self.speed_combo_box.addItem("x1")
+        self.speed_combo_box.addItem("x10")
+        self.speed_combo_box.addItem("x100")
 
         self.conductivity_label = QLabel("Conductivity", self)
         self.conductivity_label.setGeometry(240, 30, 110, 20)
@@ -137,6 +146,26 @@ class HeatTransfer(QWidget):
             self.timer.stop()
 
     def timer_method(self):
+        steps = int(self.speed_combo_box.currentText()[1:])
+        for i in range(steps):
+            self.simulation_step()
+            if self.reached_equilibrium():
+                break
+
+        temperature_1 = self.body1.temperature
+        temperature_2 = self.body2.temperature
+        self.left_slider.setValue(round(temperature_1))
+        self.right_slider.setValue(round(temperature_2))
+        self.left_temperature_box.setValue(temperature_1)
+        self.right_temperature_box.setValue(temperature_2)
+        self.set_body_color(self.left_body_label, temperature_1)
+        self.set_body_color(self.right_body_label, temperature_2)
+        self.time_label.setText(f"Time: {self.counter * self.dt:.1f} s")
+
+        if self.reached_equilibrium():
+            self.start_button.setChecked(False)
+
+    def simulation_step(self):
         conductivity = self.conductivity_box.value()
         heat_rate_1 = conductivity * (self.body2.temperature - self.body1.temperature)
         heat_rate_2 = conductivity * (self.body1.temperature - self.body2.temperature)
@@ -145,19 +174,13 @@ class HeatTransfer(QWidget):
         temperature_1 = self.body1.add_heat(heat_1)
         temperature_2 = self.body2.add_heat(heat_2)
 
-        self.left_slider.setValue(round(temperature_1))
-        self.right_slider.setValue(round(temperature_2))
-        self.left_temperature_box.setValue(temperature_1)
-        self.right_temperature_box.setValue(temperature_2)
-        self.set_body_color(self.left_body_label, temperature_1)
-        self.set_body_color(self.right_body_label, temperature_2)
-
         self.counter += 1
-        self.time_label.setText(f"Time: {self.counter * self.dt:.1f} s")
-
         self.time_history.append(self.counter * self.dt)
         self.body1_temp_history.append(temperature_1)
         self.body2_temp_history.append(temperature_2)
+
+    def reached_equilibrium(self):
+        return abs(self.body1.temperature - self.body2.temperature) < self.equilibrium_difference
 
     def graphs_clicked(self):
         self.graph_window.show()
