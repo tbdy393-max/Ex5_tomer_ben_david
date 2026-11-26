@@ -34,7 +34,7 @@ class AboutWindow(QWidget):
         self.usage_label.setText(
             "How to use:\n"
             "1. Set the temperature of each body with its slider (0-200 °C).\n"
-            "2. Set the mass, heat capacity and conductivity.\n"
-            "3. Press Start to run the simulation and press it again to stop.\n"
+            "2. Set the mass and heat capacity, and pick a material or Custom conductivity.\n"
+            "3. Press Start to run and again to stop. It also stops at equilibrium.\n"
             "4. Press Graphs to plot the temperatures over time and export them to Excel."
         )

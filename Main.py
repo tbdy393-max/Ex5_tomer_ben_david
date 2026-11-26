@@ -14,6 +14,19 @@ class HeatTransfer(QWidget):
         self.graph_window = GraphWindow(self)
         self.dt = 0.01
         self.equilibrium_difference = 0.1
+        self.bar_area_over_length = 0.02
+        self.materials = {
+            "Diamond": 1000.0,
+            "Silver": 406.0,
+            "Copper": 385.0,
+            "Gold": 314.0,
+            "Aluminum": 205.0,
+            "Brass": 109.0,
+            "Iron": 79.5,
+            "Steel": 50.2,
+            "Lead": 34.7,
+            "Mercury": 8.3,
+        }
         self.counter = 0
         self.time_history = []
         self.body1_temp_history = []
@@ -62,9 +75,21 @@ class HeatTransfer(QWidget):
         self.speed_combo_box.addItem("x10")
         self.speed_combo_box.addItem("x100")
 
-        self.conductivity_label = QLabel("Conductivity", self)
-        self.conductivity_label.setGeometry(240, 30, 110, 20)
-        self.conductivity_box = self.create_spin_box(220, 52, 0.01, 20, 1, " J/s°C")
+        self.material_label = QLabel("Material", self)
+        self.material_label.setGeometry(172, 6, 55, 25)
+        self.material_combo_box = QComboBox(self)
+        self.material_combo_box.setGeometry(230, 6, 110, 25)
+        self.material_combo_box.addItem("Custom")
+        for material in self.materials:
+            self.material_combo_box.addItem(material)
+
+        self.conductivity_label = QLabel("Conductivity (0.01 - 20)", self)
+        self.conductivity_label.setGeometry(213, 36, 150, 20)
+        self.conductivity_box = self.create_spin_box(220, 58, 0.01, 20, 1, " J/s°C")
+        self.conductivity_box.setDecimals(3)
+        self.conductivity_box.setGeometry(215, 58, 130, 25)
+        self.material_combo_box.currentTextChanged.connect(self.material_changed)
+        self.conductivity_box.valueChanged.connect(self.conductivity_changed)
 
         self.left_temperature_label = QLabel("Temp.", self)
         self.left_temperature_label.setGeometry(20, 190, 50, 25)
@@ -129,6 +154,18 @@ class HeatTransfer(QWidget):
     def set_body_color(self, label, temperature):
         red = int(temperature / 200 * 255)
         label.setStyleSheet(f"background-color: rgb({red}, 0, 0);")
+
+    def material_changed(self, material):
+        if material != "Custom":
+            self.conductivity_box.setValue(self.material_conductivity(material))
+
+    def conductivity_changed(self, value):
+        material = self.material_combo_box.currentText()
+        if material != "Custom" and value != self.material_conductivity(material):
+            self.material_combo_box.setCurrentText("Custom")
+
+    def material_conductivity(self, material):
+        return round(self.materials[material] * self.bar_area_over_length, 3)
 
     def start_stop_button_method(self, is_running):
         if is_running:
