@@ -17,6 +17,7 @@ uv run python Main.py
 5. Press **Graphs** to open the graph window:
    - **Draw** adds the selected body (Body 1, Body 2 or Both) to the graph.
    - **Clear** clears the graph.
+   - Move the mouse over the graph to see the time and temperatures at that point.
    - **Export to CSV** saves time, temperature 1 and temperature 2 to `heat_transfer_results.csv` and opens it in Excel.
 6. Press **About** for details about the project.
 

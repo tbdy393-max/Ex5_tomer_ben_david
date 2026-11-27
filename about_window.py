@@ -12,6 +12,7 @@ class AboutWindow(QWidget):
     def setupUI(self):
         self.setWindowTitle("About")
         self.setGeometry(620, 80, 460, 330)
+        self.setFixedSize(460, 330)
 
         self.picture_label = QLabel(self)
         self.picture_label.setGeometry(20, 20, 130, 130)
@@ -31,10 +32,4 @@ class AboutWindow(QWidget):
 
         self.usage_label = QLabel(self)
         self.usage_label.setGeometry(20, 165, 420, 150)
-        self.usage_label.setText(
-            "How to use:\n"
-            "1. Set the temperature of each body with its slider (0-200 °C).\n"
-            "2. Set the mass and heat capacity, and pick a material or Custom conductivity.\n"
-            "3. Press Start to run and again to stop. It also stops at equilibrium.\n"
-            "4. Press Graphs to plot the temperatures over time and export them to Excel."
-        )
+        self.usage_label.setText("How to use:\n1. Set the temperature of each body with its slider (0-200 °C).\n2. Set the mass and heat capacity, and pick a material or Custom conductivity.\n3. Press Start to run and again to stop. It also stops at equilibrium.\n4. Press Graphs to plot the temperatures over time and export them to Excel.")

@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider, QDoubleSpinBox, QAbstractSpinBox, QComboBox
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider, QDoubleSpinBox, QAbstractSpinBox, QComboBox, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy
 from about_window import AboutWindow
 from graph_window import GraphWindow
 from Body import Body
@@ -15,18 +15,7 @@ class HeatTransfer(QWidget):
         self.dt = 0.01
         self.equilibrium_difference = 0.1
         self.bar_area_over_length = 0.02
-        self.materials = {
-            "Diamond": 1000.0,
-            "Silver": 406.0,
-            "Copper": 385.0,
-            "Gold": 314.0,
-            "Aluminum": 205.0,
-            "Brass": 109.0,
-            "Iron": 79.5,
-            "Steel": 50.2,
-            "Lead": 34.7,
-            "Mercury": 8.3,
-        }
+        self.materials = {"Diamond": 1000.0, "Silver": 406.0, "Copper": 385.0, "Gold": 314.0, "Aluminum": 205.0, "Brass": 109.0, "Iron": 79.5, "Steel": 50.2, "Lead": 34.7, "Mercury": 8.3}
         self.counter = 0
         self.time_history = []
         self.body1_temp_history = []
@@ -38,103 +27,153 @@ class HeatTransfer(QWidget):
 
     def setupUI(self):
         self.setWindowTitle("Heat Transfer")
-        self.setGeometry(40, 80, 560, 330)
+        self.setGeometry(40, 80, 600, 360)
 
-        self.left_slider = QSlider(Qt.Orientation.Vertical, self)
-        self.left_slider.setGeometry(30, 30, 20, 140)
+        self.left_slider = QSlider(Qt.Orientation.Vertical)
         self.left_slider.setRange(0, 200)
         self.left_slider.setValue(200)
         self.left_slider.valueChanged.connect(self.left_temperature_changed)
 
-        self.left_body_label = QLabel(self)
-        self.left_body_label.setGeometry(70, 30, 90, 140)
+        self.left_body_label = QLabel()
+        self.left_body_label.setMinimumSize(90, 140)
+        self.left_body_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.left_body_label.setStyleSheet("background-color: rgb(255, 0, 0);")
 
-        self.right_body_label = QLabel(self)
-        self.right_body_label.setGeometry(400, 30, 90, 140)
+        self.right_body_label = QLabel()
+        self.right_body_label.setMinimumSize(90, 140)
+        self.right_body_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.right_body_label.setStyleSheet("background-color: rgb(0, 0, 0);")
 
-        self.right_slider = QSlider(Qt.Orientation.Vertical, self)
-        self.right_slider.setGeometry(510, 30, 20, 140)
+        self.right_slider = QSlider(Qt.Orientation.Vertical)
         self.right_slider.setRange(0, 200)
         self.right_slider.setValue(0)
         self.right_slider.valueChanged.connect(self.right_temperature_changed)
 
-        self.connector_label = QLabel(self)
-        self.connector_label.setGeometry(160, 90, 240, 25)
+        self.connector_label = QLabel()
+        self.connector_label.setFixedHeight(25)
+        self.connector_label.setMinimumWidth(200)
         self.connector_label.setStyleSheet("background-color: rgb(170, 170, 170);")
 
-        self.time_label = QLabel("Time: 0.0 s", self)
-        self.time_label.setGeometry(240, 122, 110, 25)
-
-        self.speed_label = QLabel("Speed", self)
-        self.speed_label.setGeometry(205, 152, 45, 25)
-        self.speed_combo_box = QComboBox(self)
-        self.speed_combo_box.setGeometry(255, 152, 80, 25)
-        self.speed_combo_box.addItem("x1")
-        self.speed_combo_box.addItem("x10")
-        self.speed_combo_box.addItem("x100")
-
-        self.material_label = QLabel("Material", self)
-        self.material_label.setGeometry(172, 6, 55, 25)
-        self.material_combo_box = QComboBox(self)
-        self.material_combo_box.setGeometry(230, 6, 110, 25)
+        self.material_label = QLabel("Material")
+        self.material_combo_box = QComboBox()
         self.material_combo_box.addItem("Custom")
         for material in self.materials:
             self.material_combo_box.addItem(material)
 
-        self.conductivity_label = QLabel("Conductivity (0.01 - 20)", self)
-        self.conductivity_label.setGeometry(213, 36, 150, 20)
-        self.conductivity_box = self.create_spin_box(220, 58, 0.01, 20, 1, " J/s°C")
+        self.conductivity_label = QLabel("Conductivity (0.01 - 20)")
+        self.conductivity_box = self.create_spin_box(0.01, 20, 1, " J/s°C")
         self.conductivity_box.setDecimals(3)
-        self.conductivity_box.setGeometry(215, 58, 130, 25)
+        self.conductivity_box.setMinimumWidth(130)
         self.material_combo_box.currentTextChanged.connect(self.material_changed)
         self.conductivity_box.valueChanged.connect(self.conductivity_changed)
 
-        self.left_temperature_label = QLabel("Temp.", self)
-        self.left_temperature_label.setGeometry(20, 190, 50, 25)
-        self.left_temperature_box = self.create_spin_box(75, 190, 0, 200, 200, " °C")
+        self.time_label = QLabel("Time: 0.0 s")
+
+        self.speed_label = QLabel("Speed")
+        self.speed_combo_box = QComboBox()
+        self.speed_combo_box.addItem("x1")
+        self.speed_combo_box.addItem("x10")
+        self.speed_combo_box.addItem("x100")
+
+        self.left_temperature_label = QLabel("Temp.")
+        self.left_temperature_box = self.create_spin_box(0, 200, 200, " °C")
         self.left_temperature_box.setReadOnly(True)
         self.left_temperature_box.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.left_mass_label = QLabel("Mass")
+        self.left_mass_box = self.create_spin_box(1, 1000, 10, " kg")
+        self.left_heat_capacity_label = QLabel("H. Cap.")
+        self.left_heat_capacity_box = self.create_spin_box(1, 5000, 1, " J/kg°C")
 
-        self.left_mass_label = QLabel("Mass", self)
-        self.left_mass_label.setGeometry(20, 230, 50, 25)
-        self.left_mass_box = self.create_spin_box(75, 230, 1, 1000, 10, " kg")
-
-        self.left_heat_capacity_label = QLabel("H. Cap.", self)
-        self.left_heat_capacity_label.setGeometry(20, 270, 50, 25)
-        self.left_heat_capacity_box = self.create_spin_box(75, 270, 1, 5000, 1, " J/kg°C")
-
-        self.right_temperature_label = QLabel("Temp.", self)
-        self.right_temperature_label.setGeometry(495, 190, 50, 25)
-        self.right_temperature_box = self.create_spin_box(365, 190, 0, 200, 0, " °C")
+        self.right_temperature_label = QLabel("Temp.")
+        self.right_temperature_box = self.create_spin_box(0, 200, 0, " °C")
         self.right_temperature_box.setReadOnly(True)
         self.right_temperature_box.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.right_mass_label = QLabel("Mass")
+        self.right_mass_box = self.create_spin_box(1, 1000, 10, " kg")
+        self.right_heat_capacity_label = QLabel("H. Cap.")
+        self.right_heat_capacity_box = self.create_spin_box(1, 5000, 1, " J/kg°C")
 
-        self.right_mass_label = QLabel("Mass", self)
-        self.right_mass_label.setGeometry(495, 230, 50, 25)
-        self.right_mass_box = self.create_spin_box(365, 230, 1, 1000, 10, " kg")
-
-        self.right_heat_capacity_label = QLabel("H. Cap.", self)
-        self.right_heat_capacity_label.setGeometry(495, 270, 50, 25)
-        self.right_heat_capacity_box = self.create_spin_box(365, 270, 1, 5000, 1, " J/kg°C")
-
-        self.start_button = QPushButton("Start", self)
-        self.start_button.setGeometry(230, 190, 100, 30)
+        self.start_button = QPushButton("Start")
+        self.start_button.setMinimumHeight(30)
         self.start_button.setCheckable(True)
         self.start_button.toggled.connect(self.start_stop_button_method)
 
-        self.graphs_button = QPushButton("Graphs", self)
-        self.graphs_button.setGeometry(230, 230, 100, 30)
+        self.graphs_button = QPushButton("Graphs")
+        self.graphs_button.setMinimumHeight(30)
         self.graphs_button.clicked.connect(self.graphs_clicked)
 
-        self.about_button = QPushButton("About", self)
-        self.about_button.setGeometry(230, 270, 100, 30)
+        self.about_button = QPushButton("About")
+        self.about_button.setMinimumHeight(30)
         self.about_button.clicked.connect(self.about_clicked)
 
-    def create_spin_box(self, x, y, minimum, maximum, value, suffix):
-        spin_box = QDoubleSpinBox(self)
-        spin_box.setGeometry(x, y, 120, 25)
+        material_layout = QHBoxLayout()
+        material_layout.addStretch()
+        material_layout.addWidget(self.material_label)
+        material_layout.addSpacing(6)
+        material_layout.addWidget(self.material_combo_box)
+        material_layout.addStretch()
+
+        speed_layout = QHBoxLayout()
+        speed_layout.addStretch()
+        speed_layout.addWidget(self.speed_label)
+        speed_layout.addSpacing(6)
+        speed_layout.addWidget(self.speed_combo_box)
+        speed_layout.addStretch()
+
+        center_layout = QVBoxLayout()
+        center_layout.addStretch()
+        center_layout.addLayout(material_layout)
+        center_layout.addSpacing(12)
+        center_layout.addWidget(self.conductivity_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        center_layout.addWidget(self.conductivity_box, alignment=Qt.AlignmentFlag.AlignCenter)
+        center_layout.addSpacing(14)
+        center_layout.addWidget(self.connector_label)
+        center_layout.addSpacing(14)
+        center_layout.addWidget(self.time_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        center_layout.addSpacing(8)
+        center_layout.addLayout(speed_layout)
+        center_layout.addStretch()
+
+        top_layout = QHBoxLayout()
+        top_layout.setSpacing(0)
+        top_layout.addWidget(self.left_slider)
+        top_layout.addSpacing(15)
+        top_layout.addWidget(self.left_body_label, 1)
+        top_layout.addLayout(center_layout, 2)
+        top_layout.addWidget(self.right_body_label, 1)
+        top_layout.addSpacing(15)
+        top_layout.addWidget(self.right_slider)
+
+        bottom_layout = QGridLayout()
+        bottom_layout.setHorizontalSpacing(15)
+        bottom_layout.setColumnStretch(1, 2)
+        bottom_layout.setColumnStretch(2, 1)
+        bottom_layout.setColumnStretch(3, 2)
+        bottom_layout.addWidget(self.left_temperature_label, 0, 0)
+        bottom_layout.addWidget(self.left_temperature_box, 0, 1)
+        bottom_layout.addWidget(self.start_button, 0, 2)
+        bottom_layout.addWidget(self.right_temperature_box, 0, 3)
+        bottom_layout.addWidget(self.right_temperature_label, 0, 4)
+        bottom_layout.addWidget(self.left_mass_label, 1, 0)
+        bottom_layout.addWidget(self.left_mass_box, 1, 1)
+        bottom_layout.addWidget(self.graphs_button, 1, 2)
+        bottom_layout.addWidget(self.right_mass_box, 1, 3)
+        bottom_layout.addWidget(self.right_mass_label, 1, 4)
+        bottom_layout.addWidget(self.left_heat_capacity_label, 2, 0)
+        bottom_layout.addWidget(self.left_heat_capacity_box, 2, 1)
+        bottom_layout.addWidget(self.about_button, 2, 2)
+        bottom_layout.addWidget(self.right_heat_capacity_box, 2, 3)
+        bottom_layout.addWidget(self.right_heat_capacity_label, 2, 4)
+
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(top_layout, 1)
+        main_layout.addSpacing(15)
+        main_layout.addLayout(bottom_layout)
+        self.setLayout(main_layout)
+
+    def create_spin_box(self, minimum, maximum, value, suffix):
+        spin_box = QDoubleSpinBox()
+        spin_box.setMinimumWidth(120)
         spin_box.setRange(minimum, maximum)
         spin_box.setDecimals(2)
         spin_box.setValue(value)
