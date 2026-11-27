@@ -11,7 +11,7 @@ uv run python Main.py
 ## How to use
 
 1. Set the starting temperature of each body with its slider (0-200 °C). The color goes from black (0 °C) to red (200 °C).
-2. Set the mass and heat capacity of each body. For the bar between them, pick a **Material** (the conductivity is set from the table below), or type the conductivity yourself. Typing a value switches the material to **Custom**.
+2. Set the mass of each body, and pick its **Material** (the heat capacity is set from the body table below) or type the heat capacity yourself. For the bar between them, pick a **Material** (the conductivity is set from the table below), or type the conductivity yourself. Typing a value switches the material to **Custom**.
 3. Choose a **Speed** (x1, x10, x100). Higher speeds run more 0.01 s steps per timer tick; the physics stays the same.
 4. Press **Start** to run the simulation and press it again (**Stop**) to stop it. It also stops by itself at equilibrium, when the two temperatures are less than 0.1 °C apart.
 5. Press **Graphs** to open the graph window:
@@ -33,6 +33,25 @@ Every time step (Δt = 0.01 s):
 - New T = T + ΔT
 
 ## Materials
+
+### Bodies
+
+| Material | Heat capacity c [J/(kg·°C)] |
+|---|---|
+| Water | 4186 |
+| Ice | 2090 |
+| Wood | 1700 |
+| Aluminum | 897 |
+| Glass | 840 |
+| Steel | 490 |
+| Iron | 449 |
+| Copper | 385 |
+| Silver | 235 |
+| Gold | 129 |
+
+Real heat capacities are large, so with real materials the bodies change temperature slowly. Use a smaller mass or a higher speed.
+
+### Bar
 
 The table gives the thermal conductivity k of the material in W/(m·K). The bar between the bodies has a fixed A/L = 0.02 m (for example 2 cm² cross-section and 1 cm length), so σ = k · 0.02 J/s°C.
 

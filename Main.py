@@ -18,6 +18,7 @@ class HeatTransfer(QWidget):
         self.heater_power = 0
         self.bar_area_over_length = 0.02
         self.materials = {"Diamond": 1000.0, "Silver": 406.0, "Copper": 385.0, "Gold": 314.0, "Aluminum": 205.0, "Brass": 109.0, "Iron": 79.5, "Steel": 50.2, "Lead": 34.7, "Mercury": 8.3}
+        self.body_materials = {"Water": 4186.0, "Ice": 2090.0, "Wood": 1700.0, "Aluminum": 897.0, "Glass": 840.0, "Steel": 490.0, "Iron": 449.0, "Copper": 385.0, "Silver": 235.0, "Gold": 129.0}
         self.counter = 0
         self.time_history = []
         self.body1_temp_history = []
@@ -84,6 +85,10 @@ class HeatTransfer(QWidget):
         self.left_mass_box = self.create_spin_box(1, 1000, 10, " kg")
         self.left_heat_capacity_label = QLabel("H. Cap.")
         self.left_heat_capacity_box = self.create_spin_box(1, 5000, 1, " J/kg°C")
+        self.left_material_label = QLabel("Material")
+        self.left_material_combo_box = self.create_body_material_combo_box()
+        self.left_material_combo_box.currentTextChanged.connect(lambda material: self.body_material_changed(material, self.left_heat_capacity_box))
+        self.left_heat_capacity_box.valueChanged.connect(lambda value: self.heat_capacity_changed(value, self.left_material_combo_box))
 
         self.right_temperature_label = QLabel("Temp.")
         self.right_temperature_box = self.create_spin_box(0, 200, 0, " °C")
@@ -93,6 +98,10 @@ class HeatTransfer(QWidget):
         self.right_mass_box = self.create_spin_box(1, 1000, 10, " kg")
         self.right_heat_capacity_label = QLabel("H. Cap.")
         self.right_heat_capacity_box = self.create_spin_box(1, 5000, 1, " J/kg°C")
+        self.right_material_label = QLabel("Material")
+        self.right_material_combo_box = self.create_body_material_combo_box()
+        self.right_material_combo_box.currentTextChanged.connect(lambda material: self.body_material_changed(material, self.right_heat_capacity_box))
+        self.right_heat_capacity_box.valueChanged.connect(lambda value: self.heat_capacity_changed(value, self.right_material_combo_box))
 
         self.start_button = QPushButton("Start")
         self.start_button.setMinimumHeight(30)
@@ -169,13 +178,17 @@ class HeatTransfer(QWidget):
         bottom_layout.addWidget(self.graphs_button, 1, 2)
         bottom_layout.addWidget(self.right_mass_box, 1, 3)
         bottom_layout.addWidget(self.right_mass_label, 1, 4)
-        bottom_layout.addWidget(self.left_heat_capacity_label, 2, 0)
-        bottom_layout.addWidget(self.left_heat_capacity_box, 2, 1)
+        bottom_layout.addWidget(self.left_material_label, 2, 0)
+        bottom_layout.addWidget(self.left_material_combo_box, 2, 1)
         bottom_layout.addWidget(self.about_button, 2, 2)
-        bottom_layout.addWidget(self.right_heat_capacity_box, 2, 3)
-        bottom_layout.addWidget(self.right_heat_capacity_label, 2, 4)
-        bottom_layout.addWidget(self.heater_button, 3, 1)
+        bottom_layout.addWidget(self.right_material_combo_box, 2, 3)
+        bottom_layout.addWidget(self.right_material_label, 2, 4)
+        bottom_layout.addWidget(self.left_heat_capacity_label, 3, 0)
+        bottom_layout.addWidget(self.left_heat_capacity_box, 3, 1)
         bottom_layout.addWidget(self.restart_button, 3, 2)
+        bottom_layout.addWidget(self.right_heat_capacity_box, 3, 3)
+        bottom_layout.addWidget(self.right_heat_capacity_label, 3, 4)
+        bottom_layout.addWidget(self.heater_button, 4, 1)
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(top_layout, 1)
@@ -183,6 +196,22 @@ class HeatTransfer(QWidget):
         main_layout.addLayout(bottom_layout)
         self.setLayout(main_layout)
         self.update_connector_color()
+
+    def create_body_material_combo_box(self):
+        combo_box = QComboBox()
+        combo_box.addItem("Custom")
+        for material in self.body_materials:
+            combo_box.addItem(material)
+        return combo_box
+
+    def body_material_changed(self, material, heat_capacity_box):
+        if material != "Custom":
+            heat_capacity_box.setValue(self.body_materials[material])
+
+    def heat_capacity_changed(self, value, material_combo_box):
+        material = material_combo_box.currentText()
+        if material != "Custom" and value != self.body_materials[material]:
+            material_combo_box.setCurrentText("Custom")
 
     def create_spin_box(self, minimum, maximum, value, suffix):
         spin_box = QDoubleSpinBox()
@@ -301,6 +330,8 @@ class HeatTransfer(QWidget):
         self.start_button.setChecked(False)
         self.heater_button.setChecked(False)
         self.material_combo_box.setCurrentText("Custom")
+        self.left_material_combo_box.setCurrentText("Custom")
+        self.right_material_combo_box.setCurrentText("Custom")
         self.conductivity_box.setValue(1)
         self.left_mass_box.setValue(10)
         self.right_mass_box.setValue(10)
