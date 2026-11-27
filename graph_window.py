@@ -71,6 +71,8 @@ class GraphWindow(QWidget):
         self.axes.spines["bottom"].set_linewidth(0.6)
         self.axes.tick_params(colors=self.ink_color, labelsize=8, width=0.6)
         self.axes.margins(y=0.12)
+        self.axes.set_xticks([])
+        self.axes.set_yticks([])
         self.axes.set_xlabel("Time [s]", color=self.ink_color, fontsize=9)
         self.axes.set_ylabel("Temperature [°C]", color=self.ink_color, fontsize=9)
 

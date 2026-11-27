@@ -19,14 +19,16 @@ uv run python Main.py
    - **Clear** clears the graph.
    - Move the mouse over the graph to see the time and temperatures at that point.
    - **Export to CSV** saves time, temperature 1 and temperature 2 to `heat_transfer_results.csv` and opens it in Excel.
-6. Press **About** for details about the project.
+6. Press **Heat Body 1** to add constant power to Body 1 and type the power in Watt (1-1000 W). Press it again to turn the heating off. With heating on there is no equilibrium, so the run stops when a body reaches 200 °C or when the gap between the bodies settles at its steady value ΔT = P / (σ · (1 + m₁c₁ / m₂c₂)).
+7. Press **Restart** to stop and go back to the starting values (200 °C and 0 °C, 10 kg, heat capacity 1, conductivity 1, speed x1). The history and the graph are cleared.
+8. Press **About** for details about the project.
 
 ## Physics
 
 Every time step (Δt = 0.01 s):
 
 - I₁ = σ · (T₂ − T₁), I₂ = σ · (T₁ − T₂)
-- ΔQ = I · Δt
+- ΔQ = I · Δt (Body 1 also gets P · Δt when Heat Body 1 is on)
 - ΔT = ΔQ / (m · c)
 - New T = T + ΔT
 

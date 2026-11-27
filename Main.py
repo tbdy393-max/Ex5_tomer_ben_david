@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider, QDoubleSpinBox, QAbstractSpinBox, QComboBox, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider, QDoubleSpinBox, QAbstractSpinBox, QComboBox, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy, QInputDialog
 from about_window import AboutWindow
 from graph_window import GraphWindow
 from Body import Body
@@ -14,6 +14,8 @@ class HeatTransfer(QWidget):
         self.graph_window = GraphWindow(self)
         self.dt = 0.01
         self.equilibrium_difference = 0.1
+        self.max_temperature = 200
+        self.heater_power = 0
         self.bar_area_over_length = 0.02
         self.materials = {"Diamond": 1000.0, "Silver": 406.0, "Copper": 385.0, "Gold": 314.0, "Aluminum": 205.0, "Brass": 109.0, "Iron": 79.5, "Steel": 50.2, "Lead": 34.7, "Mercury": 8.3}
         self.counter = 0
@@ -52,7 +54,6 @@ class HeatTransfer(QWidget):
         self.connector_label = QLabel()
         self.connector_label.setFixedHeight(25)
         self.connector_label.setMinimumWidth(200)
-        self.connector_label.setStyleSheet("background-color: rgb(170, 170, 170);")
 
         self.material_label = QLabel("Material")
         self.material_combo_box = QComboBox()
@@ -105,6 +106,15 @@ class HeatTransfer(QWidget):
         self.about_button = QPushButton("About")
         self.about_button.setMinimumHeight(30)
         self.about_button.clicked.connect(self.about_clicked)
+
+        self.heater_button = QPushButton("Heat Body 1")
+        self.heater_button.setMinimumHeight(30)
+        self.heater_button.setCheckable(True)
+        self.heater_button.toggled.connect(self.heater_toggled)
+
+        self.restart_button = QPushButton("Restart")
+        self.restart_button.setMinimumHeight(30)
+        self.restart_button.clicked.connect(self.restart_clicked)
 
         material_layout = QHBoxLayout()
         material_layout.addStretch()
@@ -164,12 +174,15 @@ class HeatTransfer(QWidget):
         bottom_layout.addWidget(self.about_button, 2, 2)
         bottom_layout.addWidget(self.right_heat_capacity_box, 2, 3)
         bottom_layout.addWidget(self.right_heat_capacity_label, 2, 4)
+        bottom_layout.addWidget(self.heater_button, 3, 1)
+        bottom_layout.addWidget(self.restart_button, 3, 2)
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(top_layout, 1)
         main_layout.addSpacing(15)
         main_layout.addLayout(bottom_layout)
         self.setLayout(main_layout)
+        self.update_connector_color()
 
     def create_spin_box(self, minimum, maximum, value, suffix):
         spin_box = QDoubleSpinBox()
@@ -193,6 +206,12 @@ class HeatTransfer(QWidget):
     def set_body_color(self, label, temperature):
         red = int(temperature / 200 * 255)
         label.setStyleSheet(f"background-color: rgb({red}, 0, 0);")
+        self.update_connector_color()
+
+    def update_connector_color(self):
+        left_red = int(self.left_temperature_box.value() / 200 * 255)
+        right_red = int(self.right_temperature_box.value() / 200 * 255)
+        self.connector_label.setStyleSheet(f"background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 rgb({left_red}, 0, 0), stop: 1 rgb({right_red}, 0, 0));")
 
     def material_changed(self, material):
         if material != "Custom":
@@ -225,7 +244,7 @@ class HeatTransfer(QWidget):
         steps = int(self.speed_combo_box.currentText()[1:])
         for i in range(steps):
             self.simulation_step()
-            if self.reached_equilibrium():
+            if self.should_stop():
                 break
 
         temperature_1 = self.body1.temperature
@@ -238,14 +257,14 @@ class HeatTransfer(QWidget):
         self.set_body_color(self.right_body_label, temperature_2)
         self.time_label.setText(f"Time: {self.counter * self.dt:.1f} s")
 
-        if self.reached_equilibrium():
+        if self.should_stop():
             self.start_button.setChecked(False)
 
     def simulation_step(self):
         conductivity = self.conductivity_box.value()
         heat_rate_1 = conductivity * (self.body2.temperature - self.body1.temperature)
         heat_rate_2 = conductivity * (self.body1.temperature - self.body2.temperature)
-        heat_1 = heat_rate_1 * self.dt
+        heat_1 = heat_rate_1 * self.dt + self.heater_power * self.dt
         heat_2 = heat_rate_2 * self.dt
         temperature_1 = self.body1.add_heat(heat_1)
         temperature_2 = self.body2.add_heat(heat_2)
@@ -255,8 +274,49 @@ class HeatTransfer(QWidget):
         self.body1_temp_history.append(temperature_1)
         self.body2_temp_history.append(temperature_2)
 
-    def reached_equilibrium(self):
-        return abs(self.body1.temperature - self.body2.temperature) < self.equilibrium_difference
+    def should_stop(self):
+        if self.body1.temperature >= self.max_temperature or self.body2.temperature >= self.max_temperature:
+            return True
+        gap = self.body1.temperature - self.body2.temperature
+        if self.heater_power == 0:
+            return abs(gap) < self.equilibrium_difference
+        heat_capacity_1 = self.body1.mass * self.body1.heat_capacity
+        heat_capacity_2 = self.body2.mass * self.body2.heat_capacity
+        steady_gap = self.heater_power / (self.conductivity_box.value() * (1 + heat_capacity_1 / heat_capacity_2))
+        return abs(gap - steady_gap) < self.equilibrium_difference
+
+    def heater_toggled(self, is_on):
+        if is_on:
+            power, ok = QInputDialog.getDouble(self, "Heat Body 1", "Power added to Body 1 [W]:", 50, 1, 1000, 1)
+            if ok:
+                self.heater_power = power
+                self.heater_button.setText(f"Heating Body 1: {power:.1f} W")
+            else:
+                self.heater_button.setChecked(False)
+        else:
+            self.heater_power = 0
+            self.heater_button.setText("Heat Body 1")
+
+    def restart_clicked(self):
+        self.start_button.setChecked(False)
+        self.heater_button.setChecked(False)
+        self.material_combo_box.setCurrentText("Custom")
+        self.conductivity_box.setValue(1)
+        self.left_mass_box.setValue(10)
+        self.right_mass_box.setValue(10)
+        self.left_heat_capacity_box.setValue(1)
+        self.right_heat_capacity_box.setValue(1)
+        self.speed_combo_box.setCurrentText("x1")
+        self.left_slider.setValue(200)
+        self.right_slider.setValue(0)
+        self.left_temperature_changed()
+        self.right_temperature_changed()
+        self.counter = 0
+        self.time_label.setText("Time: 0.0 s")
+        self.time_history = []
+        self.body1_temp_history = []
+        self.body2_temp_history = []
+        self.graph_window.clear_clicked()
 
     def graphs_clicked(self):
         self.graph_window.show()

@@ -32,4 +32,4 @@ class AboutWindow(QWidget):
 
         self.usage_label = QLabel(self)
         self.usage_label.setGeometry(20, 165, 420, 150)
-        self.usage_label.setText("How to use:\n1. Set the temperature of each body with its slider (0-200 °C).\n2. Set the mass and heat capacity, and pick a material or Custom conductivity.\n3. Press Start to run and again to stop. It also stops at equilibrium.\n4. Press Graphs to plot the temperatures over time and export them to Excel.")
+        self.usage_label.setText("How to use:\n1. Set the temperature of each body with its slider (0-200 °C).\n2. Set the mass and heat capacity, and pick a material or Custom conductivity.\n3. Press Start to run and again to stop. It also stops at equilibrium.\n4. Press Graphs to plot the temperatures over time and export them to Excel.\n5. Press Heat Body 1 to add constant power [W] to Body 1.\n6. Press Restart to go back to the starting values.")
