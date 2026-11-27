@@ -70,7 +70,6 @@ class GraphWindow(QWidget):
         self.axes.spines["left"].set_linewidth(0.6)
         self.axes.spines["bottom"].set_linewidth(0.6)
         self.axes.tick_params(colors=self.ink_color, labelsize=8, width=0.6)
-        self.axes.margins(y=0.12)
         self.axes.set_xticks([])
         self.axes.set_yticks([])
         self.axes.set_xlabel("Time [s]", color=self.ink_color, fontsize=9)
@@ -90,10 +89,16 @@ class GraphWindow(QWidget):
         if len(times) == 0:
             return
         for drawn in self.series:
-            if drawn["name"] == name and drawn["temperatures"] == temperatures:
+            if drawn["name"] == name and drawn["source"] is temperatures:
+                drawn["times"] = list(times)
+                drawn["temperatures"] = list(temperatures)
+                drawn["line"].set_data(drawn["times"], drawn["temperatures"])
                 return
         color = self.body_colors[name]
-        self.axes.plot(times, temperatures, color=color, linewidth=1.8)
+        source = temperatures
+        times = list(times)
+        temperatures = list(temperatures)
+        line = self.axes.plot(times, temperatures, color=color, linewidth=1.8)[0]
         marker = self.axes.plot([], [], "o", color=color, markersize=5)[0]
         is_first = True
         for drawn in self.series:
@@ -103,23 +108,23 @@ class GraphWindow(QWidget):
             self.axes.annotate(name, (times[0], temperatures[0]), xytext=(4, 6), textcoords="offset points", color=color, va="bottom", fontsize=9)
         elif is_first:
             self.axes.annotate(name, (times[0], temperatures[0]), xytext=(4, -6), textcoords="offset points", color=color, va="top", fontsize=9)
-        self.series.append({"name": name, "times": times, "temperatures": temperatures, "marker": marker})
+        self.series.append({"name": name, "source": source, "times": times, "temperatures": temperatures, "line": line, "marker": marker})
 
     def update_frame(self):
         if len(self.series) == 0:
             return
         end_time = 0
-        lowest = self.series[0]["temperatures"][0]
-        highest = lowest
+        highest = 0
         for drawn in self.series:
             end_time = max(end_time, drawn["times"][-1])
-            lowest = min(lowest, min(drawn["temperatures"]))
             highest = max(highest, max(drawn["temperatures"]))
+        self.axes.set_xlim(-end_time * 0.03, end_time * 1.03)
+        self.axes.set_ylim(-highest * 0.1, highest * 1.12)
         self.axes.spines["bottom"].set_bounds(0, end_time)
-        self.axes.spines["left"].set_bounds(lowest, highest)
+        self.axes.spines["left"].set_bounds(0, highest)
         self.axes.set_xticks([0, round(end_time / 2, 1), round(end_time, 1)])
-        self.axes.set_yticks([round(lowest), round((lowest + highest) / 2), round(highest)])
-        self.hover_distance = (highest - lowest) * 0.04
+        self.axes.set_yticks([0, round(highest / 2), round(highest)])
+        self.hover_distance = highest * 0.04
 
     def mouse_moved(self, event):
         if event.inaxes != self.axes or len(self.series) == 0:

@@ -5,8 +5,8 @@ Graphic design:
   Logic: one consistent look for the whole app, and the state of the simulation (running or not) can be seen at a glance.
 - The bar between the bodies has a color gradient from the color of Body 1 to the color of Body 2, updated at every step.
   Logic: you can see the heat flowing from the hot body to the cold one. At equilibrium the bar becomes one uniform color, because there is no more heat flow.
-- The graph is designed for a high data-ink ratio (Tufte): the body names are written next to the lines instead of a legend, the axes span exactly the range of the data (range frame), each axis has only 3 ticks (start, middle, end), and there is no grid and no title. Everything that is not data is gray and thin.
-  Logic: almost all the ink on the graph shows data, so the eye goes straight to the curves.
+- The graph is designed for a high data-ink ratio (Tufte): the body names are written next to the lines instead of a legend, the axis lines end where the data ends (range frame), each axis has only 3 ticks (start, middle, end), and there is no grid and no title. Everything that is not data is gray and thin. The temperature axis always starts at 0.
+  Logic: almost all the ink on the graph shows data, so the eye goes straight to the curves. Starting the temperature axis at 0 keeps the graph honest, because a cut axis makes small changes look large.
 - Hover on the graph: when the mouse is near a curve, dots appear on the curves and the time and both temperatures are shown under the graph.
   Logic: exact values can be read from the graph without adding a grid or numbers on the graph itself.
 - Drawing the same run twice does not duplicate the lines, and the body names are placed above a falling line and below a rising one, so they never overlap it.

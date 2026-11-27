@@ -254,8 +254,8 @@ class HeatTransfer(QWidget):
     def material_conductivity(self, material):
         return round(self.materials[material] * self.bar_area_over_length, 3)
 
-    def start_stop_button_method(self, is_running):
-        if is_running:
+    def start_stop_button_method(self):
+        if self.start_button.isChecked():
             self.start_button.setText("Stop")
             self.body1 = Body(self.left_mass_box.value(), self.left_heat_capacity_box.value(), self.left_temperature_box.value())
             self.body2 = Body(self.right_mass_box.value(), self.right_heat_capacity_box.value(), self.right_temperature_box.value())
