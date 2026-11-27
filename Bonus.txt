@@ -1,0 +1,37 @@
+Bonus features - Exercise 5 (Heat Transfer)
+
+Graphic design:
+- One shared qss style file for all the windows. Buttons change color when the mouse is over them, and the Start button turns red while the simulation runs.
+  Logic: one consistent look for the whole app, and the state of the simulation (running or not) can be seen at a glance.
+- The bar between the bodies has a color gradient from the color of Body 1 to the color of Body 2, updated at every step.
+  Logic: you can see the heat flowing from the hot body to the cold one. At equilibrium the bar becomes one uniform color, because there is no more heat flow.
+- The graph is designed for a high data-ink ratio (Tufte): the body names are written next to the lines instead of a legend, the axes span exactly the range of the data (range frame), each axis has only 3 ticks (start, middle, end), and there is no grid and no title. Everything that is not data is gray and thin.
+  Logic: almost all the ink on the graph shows data, so the eye goes straight to the curves.
+- Hover on the graph: when the mouse is near a curve, dots appear on the curves and the time and both temperatures are shown under the graph.
+  Logic: exact values can be read from the graph without adding a grid or numbers on the graph itself.
+- Drawing the same run twice does not duplicate the lines, and the body names are placed above a falling line and below a rising one, so they never overlap it.
+- The main window and the graph window are built with layouts, so they can be resized or maximized and the content fills the screen. The About window has a fixed size.
+
+Physics:
+- Heat Body 1: a button that adds constant power (1-1000 W) to Body 1. The power is chosen in a small dialog, and P * dt is added to Body 1 at every step.
+  Logic: with constant heating there is no equilibrium (both bodies keep warming), so the simulation stops when a body reaches 200 C (the top of the scale), or when the gap between the bodies settles at its steady value:
+  dT_steady = P / (sigma * (1 + m1*c1 / (m2*c2)))
+  At that point the heat that enters Body 1 flows through the bar to Body 2, and both bodies warm at the same rate.
+- The input ranges are limited so the simulation is always stable (mass 1-1000 kg, heat capacity 1-5000 J/kg C, conductivity 0.01-20 J/s C).
+  Logic: with a time step of dt, the simulation stays stable only if sigma * dt * (1/(m1*c1) + 1/(m2*c2)) is less than 1. With these ranges it is at most 0.4, so the hot body never "overshoots" the cold one.
+
+User experience:
+- Bar material: a list of 10 conductors from the thermal conductivity table (Diamond, Silver, Copper, Gold, Aluminum, Brass, Iron, Steel, Lead, Mercury), or Custom to type the conductivity.
+  Logic: the table gives the material conductivity k in W/(m K), while the simulation needs the conductivity of the bar in J/s C, which is k * A / L. A fixed bar with A/L = 0.02 m was chosen, so diamond gives exactly 20 J/s C (the top of the stable range). Insulators were left out because they take hours to reach equilibrium. Typing a value switches the material to Custom automatically, and the range is written above the field.
+- Body material: a list of 10 materials for each body (Water, Ice, Wood, Aluminum, Glass, Steel, Iron, Copper, Silver, Gold) that sets its real heat capacity, or Custom to type it.
+  Logic: real physical values, with the option to enter values by hand. For example, 1 kg of aluminum at 200 C and 1 kg of iron at 0 C reach 133.28 C, exactly the theoretical equilibrium (m1*c1*T1 + m2*c2*T2) / (m1*c1 + m2*c2).
+- Speed (x1, x10, x100): runs several steps of dt = 0.01 s at every timer tick.
+  Logic: the physics stays exactly the same (every step is still 0.01 s), only the run is faster. This makes slow cases practical: a poor conductor that needs 63 minutes of simulation takes about 38 seconds at x100.
+- The simulation time is shown under the bar, in steps of 0.1 s.
+- Restart: stops the run and returns all the inputs to the starting values (200 C and 0 C, 10 kg, heat capacity 1, conductivity 1, speed x1), and clears the time, the history and the graph.
+  Logic: a new experiment can be started without closing and reopening the app.
+- Usage instructions in the About window.
+
+Automation:
+- Automatic stop at equilibrium: the simulation stops by itself when the two temperatures are less than 0.1 C apart.
+  Logic: the temperatures approach each other exponentially, so they never become exactly equal and a threshold is needed. The stopping time is t = ln(dT0 / threshold) / k, so the threshold has only a small effect on it (1 C or 0.1 C changes it by about 1.4 times), while the conductivity has a large one. 0.1 C is small enough to look fully balanced on the screen (for example 100.05 C and 99.95 C).
