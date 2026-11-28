@@ -11,3 +11,4 @@ wheels/
 
 # Exported results
 heat_transfer_results.csv
+*.zip
